@@ -17,7 +17,7 @@
 ;                   0.0.10.00/2019-12-12/just me   -  Fixed bug in EscapeStr method
 ; Remarks:          Names of "private" properties / methods are prefixed with an underscore,
 ;                   they must not be set / called by the script!
-;                   
+;
 ;                   SQLite3.dll file is assumed to be in the script's folder, otherwise you have to
 ;                   provide an INI-File SQLiteDB.ini in the script's folder containing the path:
 ;                   [Main]
@@ -54,7 +54,7 @@ Class SQLiteDB {
       ; ----------------------------------------------------------------------------------------------------------------
       __New() {
           This.ColumnCount := 0          ; Number of columns in the result table         (Integer)
-          This.RowCount := 0             ; Number of rows in the result table            (Integer)     
+          This.RowCount := 0             ; Number of rows in the result table            (Integer)
           This.ColumnNames := []         ; Names of columns in the result table          (Array)
           This.Rows := []                ; Rows of the result table                      (Array of Arrays)
           This.HasNames := False         ; Does var ColumnNames contain names?           (Bool)
@@ -105,7 +105,7 @@ Class SQLiteDB {
          This._CurrentRow := 0
          Return True
       }
-   }  
+   }
    ; ===================================================================================================================
    ; CLASS _RecordSet
    ; Object returned from method Query()
@@ -322,14 +322,19 @@ Class SQLiteDB {
          This.ErrorCode := 0
          If !(This._Handle) {
             This.ErrorMsg := "Invalid statement handle!"
+            debug(This.ErrorMsg)
             Return False
          }
          If (Index < 1) || (Index > This.ParamCount) {
             This.ErrorMsg := "Invalid parameter index!"
+            debug(This.ErrorMsg)
+            debug(Format("ParamCount={1}", This.ParamCount))
+            debug("Index=" . Index)
             Return False
          }
          If (Types[Type] = "") {
             This.ErrorMsg := "Invalid parameter type!"
+            debug(This.ErrorMsg)
             Return False
          }
          If (Type = "Blob") { ; ----------------------------------------------------------------------------------------
@@ -337,11 +342,13 @@ Class SQLiteDB {
             If Param3 Is Not Integer
             {
                This.ErrorMsg := "Invalid blob pointer!"
+               debug(This.ErrorMsg)
                Return False
             }
             If Param4 Is Not Integer
             {
                This.ErrorMsg := "Invalid blob size!"
+               debug(This.ErrorMsg)
                Return False
             }
             ; Let SQLite always create a copy of the BLOB
@@ -350,11 +357,13 @@ Class SQLiteDB {
             If (ErrorLeveL) {
                This.ErrorMsg := "DllCall sqlite3_bind_blob failed!"
                This.ErrorCode := ErrorLevel
+               debug(This.ErrorMsg)
                Return False
             }
             If (RC) {
                This.ErrorMsg := This._ErrMsg()
                This.ErrorCode := RC
+               debug(This.ErrorMsg)
                Return False
             }
          }
@@ -363,6 +372,7 @@ Class SQLiteDB {
             If Param3 Is Not Float
             {
                This.ErrorMsg := "Invalid value for double!"
+               debug(This.ErrorMsg)
                Return False
             }
             RC := DllCall("SQlite3.dll\sqlite3_bind_double", "Ptr", This._Handle, "Int", Index, "Double", Param3
@@ -370,11 +380,13 @@ Class SQLiteDB {
             If (ErrorLeveL) {
                This.ErrorMsg := "DllCall sqlite3_bind_double failed!"
                This.ErrorCode := ErrorLevel
+               debug(This.ErrorMsg)
                Return False
             }
             If (RC) {
                This.ErrorMsg := This._ErrMsg()
                This.ErrorCode := RC
+               debug(This.ErrorMsg)
                Return False
             }
          }
@@ -383,6 +395,7 @@ Class SQLiteDB {
             If Param3 Is Not Integer
             {
                This.ErrorMsg := "Invalid value for int!"
+               debug(This.ErrorMsg)
                Return False
             }
             RC := DllCall("SQlite3.dll\sqlite3_bind_int", "Ptr", This._Handle, "Int", Index, "Int", Param3
@@ -390,28 +403,40 @@ Class SQLiteDB {
             If (ErrorLeveL) {
                This.ErrorMsg := "DllCall sqlite3_bind_int failed!"
                This.ErrorCode := ErrorLevel
+               debug(This.ErrorMsg)
                Return False
             }
             If (RC) {
                This.ErrorMsg := This._ErrMsg()
                This.ErrorCode := RC
+               debug(This.ErrorMsg)
                Return False
             }
          }
-         Else If (Type = "Text") { ; -----------------------------------------------------------------------------------
+         Else If (Type = "Text") {
+
+            ; -----------------------------------------------------------------------------------
             ; Param3 = zero-terminated string
-            This._DB._StrToUTF8(Param3, ByRef UTF8)
+            This._DB._StrToUTF8(Param3, UTF8)
+
             ; Let SQLite always create a copy of the text
+            ;
+            ; int sqlite3_bind_text( sqlite3_stmt* handle, int index,
+            ;       const char* text, int, void(*)(void*) );
+
             RC := DllCall("SQlite3.dll\sqlite3_bind_text", "Ptr", This._Handle, "Int", Index, "Ptr", &UTF8
                         , "Int", -1, "Ptr", -1, "Cdecl Int")
+
             If (ErrorLeveL) {
                This.ErrorMsg := "DllCall sqlite3_bind_text failed!"
                This.ErrorCode := ErrorLevel
+               debug(This.ErrorMsg)
                Return False
             }
             If (RC) {
                This.ErrorMsg := This._ErrMsg()
                This.ErrorCode := RC
+               debug("RC = " . RC)
                Return False
             }
          }
@@ -426,22 +451,28 @@ Class SQLiteDB {
       ; Remarks:           You must call ST.Reset() before you can call ST.Step() again.
       ; ----------------------------------------------------------------------------------------------------------------
       Step() {
+        debug("Step")
+
          This.ErrorMsg := ""
          This.ErrorCode := 0
          If !(This._Handle) {
             This.ErrorMsg := "Invalid statement handle!"
+            debug(This.ErrorMsg)
             Return False
          }
          RC := DllCall("SQlite3.dll\sqlite3_step", "Ptr", This._Handle, "Cdecl Int")
          If (ErrorLevel) {
             This.ErrorMsg := "DllCall sqlite3_step failed!"
             This.ErrorCode := ErrorLevel
+            debug(This.ErrorMsg)
             Return False
          }
          If (RC <> This._DB._ReturnCode("SQLITE_DONE"))
          && (RC <> This._DB._ReturnCode("SQLITE_ROW")) {
             This.ErrorMsg := This._DB.ErrMsg()
             This.ErrorCode := RC
+
+            debug("ErrorCode = " . RC)
             Return False
          }
          Return True
@@ -529,9 +560,9 @@ Class SQLiteDB {
             If FileExist(A_ScriptDir . "\SQLiteDB.ini") {
                IniRead, SQLiteDLL, %A_ScriptDir%\SQLiteDB.ini, Main, DllPath, %SQLiteDLL%
                This.Base._SQLiteDLL := SQLiteDLL
-         }
+            }
          If !(DLL := DllCall("LoadLibrary", "Str", This.Base._SQLiteDLL, "UPtr")) {
-            MsgBox, 16, SQLiteDB Error, % "DLL " . SQLiteDLL . " does not exist!"
+            debug("Fatal Error: DLL " . SQLiteDLL . " does not exist!")
             ExitApp
          }
          This.Base.Version := StrGet(DllCall("SQlite3.dll\sqlite3_libversion", "Cdecl UPtr"), "UTF-8")
@@ -558,14 +589,16 @@ Class SQLiteDB {
             DllCall("FreeLibrary", "Ptr", DLL)
       }
    }
-   ; ===================================================================================================================
-   ; PRIVATE _StrToUTF8
-   ; ===================================================================================================================
-   _StrToUTF8(Str, ByRef UTF8) {
-      VarSetCapacity(UTF8, StrPut(Str, "UTF-8"), 0)
-      StrPut(Str, &UTF8, "UTF-8")
-      Return &UTF8
-   }
+
+    ; ===================================================================================================================
+    ; PRIVATE _StrToUTF8
+    ; ===================================================================================================================
+    _StrToUTF8(Str, ByRef UTF8) {
+        VarSetCapacity(UTF8, StrPut(Str, "UTF-8"), 0)
+        StrPut(Str, &UTF8, "UTF-8")
+        Return &UTF8
+    }
+
    ; ===================================================================================================================
    ; PRIVATE _UTF8ToStr
    ; ===================================================================================================================
@@ -576,8 +609,10 @@ Class SQLiteDB {
    ; PRIVATE _ErrMsg
    ; ===================================================================================================================
    _ErrMsg() {
-      If (RC := DllCall("SQLite3.dll\sqlite3_errmsg", "Ptr", This._Handle, "Cdecl UPtr"))
+        ;; https://sqlite.org/rescode.html
+      If (RC := DllCall("SQLite3.dll\sqlite3_errmsg", "Ptr", This._Handle, "Cdecl UPtr")) {
          Return StrGet(&RC, "UTF-8")
+      }
       Return ""
    }
    ; ===================================================================================================================
@@ -635,7 +670,7 @@ Class SQLiteDB {
    ; ===================================================================================================================
    ; Properties
    ; ===================================================================================================================
-    ErrorMsg := ""              ; Error message                           (String) 
+    ErrorMsg := ""              ; Error message                           (String)
     ErrorCode := 0              ; SQLite error code / ErrorLevel          (Variant)
     Changes := 0                ; Changes made by last call of Exec()     (Integer)
     SQL := ""                   ; Last executed SQL statement             (String)
@@ -657,10 +692,12 @@ Class SQLiteDB {
       This.ErrorMsg := ""
       This.ErrorCode := 0
       HDB := 0
+
       If (DBPath = "")
          DBPath := MEMDB
-      If (DBPath = This._Path) && (This._Handle)
+      If (DBPath = This._Path) && (This._Handle) {
          Return True
+      }
       If (This._Handle) {
          This.ErrorMsg := "You must first close DB " . This._Path . "!"
          Return False
@@ -757,7 +794,7 @@ Class SQLiteDB {
    ;                                     The address of the current SQL string is passed in A_EventInfo.
    ;                                     If the callback function returns non-zero, DB.Exec() returns SQLITE_ABORT
    ;                                     without invoking the callback again and without running any subsequent
-   ;                                     SQL statements.  
+   ;                                     SQL statements.
    ; Return values:        On success  - True, the number of changed rows is given in property Changes
    ;                       On failure  - False, ErrorMsg / ErrorCode contain additional information
    ; ===================================================================================================================
@@ -907,33 +944,59 @@ Class SQLiteDB {
       This.SQL := SQL
       If !(This._Handle) {
          This.ErrorMsg := "Invalid database handle!"
+         debug(This.ErrorMsg)
          Return False
       }
-      If !RegExMatch(SQL, "i)^\s*(INSERT|UPDATE|REPLACE)\s") {
-         This.ErrorMsg := A_ThisFunc . " requires an INSERT/UPDATE/REPLACE statement!"
-         Return False
-      }
+      ; If !RegExMatch(SQL, "i)^\s*(INSERT|UPDATE|REPLACE)\s") {
+      ;    This.ErrorMsg := A_ThisFunc . " requires an INSERT/UPDATE/REPLACE statement!"
+      ;    debug(This.ErrorMsg)
+      ;    Return False
+      ; }
       Stmt := 0
       This._StrToUTF8(SQL, UTF8)
+
+      ; int sqlite3_prepare_v2(
+      ;   sqlite3 *db,            /* Database handle */
+      ;   const char *zSql,       /* SQL statement, UTF-8 encoded */
+      ;   int nByte,              /* Maximum length of zSql in bytes. */
+      ;   sqlite3_stmt **ppStmt,  /* OUT: Statement handle */
+      ;   const char **pzTail     /* OUT: Pointer to unused portion of zSql */
+      ; );
+
       RC := DllCall("SQlite3.dll\sqlite3_prepare_v2", "Ptr", This._Handle, "Ptr", &UTF8, "Int", -1
-                  , "PtrP", Stmt, "Ptr", 0, "Cdecl Int")
+                  , "Ptr*", Stmt, "Ptr", 0, "Cdecl Int")
+
       If (ErrorLeveL) {
          This.ErrorMsg := A_ThisFunc . ": DllCall sqlite3_prepare_v2 failed!"
          This.ErrorCode := ErrorLevel
+         debug(This.ErrorMsg)
          Return False
       }
+
       If (RC) {
          This.ErrorMsg := A_ThisFunc . ": " . This._ErrMsg()
          This.ErrorCode := RC
+         debug("sqlite3_prepare_v2 _ErrMsg = " . This._ErrMsg())
+         debug("RC = " . RC)
          Return False
       }
-		ST := New This._Statement
+
+      ST := New This._Statement
       ST.ParamCount := DllCall("SQlite3.dll\sqlite3_bind_parameter_count", "Ptr", This._Handle, "Cdecl Int")
+      debug(Format("ParamCount = {1}", ST.ParamCount) )
+
+      if (ST.ParamCount < 0) {
+        debug("Fatal Error: ParamCount is negative")
+        debug(This._ErrMsg())
+        ExitApp
+      }
+
       ST._Handle := Stmt
       ST._DB := This
       This._Stmts[Stmt] := Stmt
       Return True
     }
+
    ; ===================================================================================================================
    ; METHOD Query          Get "recordset" object for prepared SELECT query
    ; Parameters:           SQL         - SQL SELECT statement
