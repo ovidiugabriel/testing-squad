@@ -1,6 +1,6 @@
 Gui, Add, Text, x12 y9 w100 h20 , Module
-Gui, Add, DropDownList, x112 y9 w130 h20 vModuleChoice,
-Gui, Add, Button, x252 y9 w100 h20 , New Module
+Gui, Add, DropDownList, x112 y9 w130 vModuleChoice, %ModulesList%
+Gui, Add, Button, x252 y9 w100 h20 gNewModule, New Module
 Gui, Add, Text, x12 y39 w100 h20 , Test Case Code
 Gui, Add, Edit, x112 y39 w130 h20 vTestCaseCodeValue,
 Gui, Add, Text, x12 y69 w100 h20 , Test Case Title

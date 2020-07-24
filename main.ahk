@@ -10,6 +10,8 @@
 ;;
 ;; ------------------------------------------------------------------------------
 
+#SingleInstance force
+
 ;; Manual: https://github.com/ovidiugabriel/testing-squad/blob/master/docs/SQLite-AHK.md
 #include Class_SQLiteDB.ahk
 #include TestCaseModel.ahk
@@ -29,8 +31,53 @@ if (db.OpenDB(db_path, "W", false)) {
     debug("Failed to open database " . db.ErrorMsg)
 }
 
+getAllModules(ByRef recordSet) {
+    global db
+    db.Query("SELECT module_id, module_name FROM testcases_modules", recordSet)
+}
+
+getModulesList() {
+    getAllModules(recordSet)
+    ModulesList := ""
+    while (recordSet.Next(row) > 0) {
+        ModulesList .= row[2] . "|"
+    }
+    return ModulesList
+}
+
+getModulesListReverse() {
+    getAllModules(recordSet)
+    object := {}
+    while (recordSet.Next(row) > 0) {
+        ObjRawSet(object, row[2], row[1])
+    }
+    return object
+}
+
 ;; load the GUI
+ModulesList := getModulesList()
+Gui NewTestCase:Default
 #include forms/NewTestCase.ahk
+
+NewModule:
+    Gui NewModule:Default
+    #include forms/NewModule.ahk
+    return
+
+SaveNewModule:
+    ;; 'Submit' is making the variables available
+    Gui, Submit, nohide
+
+    db_insert(db, "testcases_modules", {module_name: ModuleNameValue})
+
+    GuiControl, NewTestCase:, ModuleChoice, %ModuleNameValue%
+
+    Gui Destroy
+    return
+
+NewModuleGuiClose:
+    Gui NewModule:Destroy
+    return
 
 SaveTestCase:
     ;; 'Submit' is making the variables available
@@ -52,9 +99,11 @@ SaveTestCase:
         , "Medium": 3
         , "Low":    4}
 
+    eModulesReverse := getModulesListReverse()
+
     testCase := new TestCaseModel()
 
-    testCase.Module          := 1
+    testCase.Module          := eModulesReverse[ModuleChoice]
     testCase.Code            := TestCaseCodeValue
     testCase.Title           := TestCaseTitleValue
     testCase.Description     := DescriptionValue
