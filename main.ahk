@@ -54,10 +54,40 @@ getModulesListReverse() {
     return object
 }
 
+onModuleSelected(module_id) {
+    global db
+    sql := Format("SELECT Test_Case_ID, Module, Code, Title FROM testcases WHERE Module = '{1:d}'", module_id)
+    debug(sql)
+    db.Query(sql, recordSet)
+
+    LV_Delete()
+    while (recordSet.Next(row) > 0) {
+        LV_Add("", row[1], row[2], row[3], row[4])
+    }
+}
+
 ;; load the GUI
+
 ModulesList := getModulesList()
-Gui NewTestCase:Default
-#include forms/NewTestCase.ahk
+Gui TestCases:Default
+#include TestCases.ahk
+
+return
+
+AddNew:
+    ModulesList := getModulesList()
+    Gui NewTestCase:Default
+    #include forms/NewTestCase.ahk
+    return
+
+SelectModule:
+    ;; 'Submit' is making the variables available
+    Gui, Submit, nohide
+
+    eModulesReverse := getModulesListReverse()
+    debug("module selected: "  . ModuleChoice . " -> " . eModulesReverse[ModuleChoice])
+    onModuleSelected(eModulesReverse[ModuleChoice])
+    return
 
 NewModule:
     Gui NewModule:Default
@@ -77,6 +107,10 @@ SaveNewModule:
 
 NewModuleGuiClose:
     Gui NewModule:Destroy
+    return
+
+NewTestCaseGuiClose:
+    Gui NewTestCase:Destroy
     return
 
 SaveTestCase:
@@ -115,7 +149,7 @@ SaveTestCase:
     testCase.Expected_Result := ExpectedValue
 
     testCase.insert(db)
-
+    Gui NewTestCase:Destroy
     return
 
 GuiClose:
