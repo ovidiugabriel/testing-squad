@@ -110,11 +110,16 @@ SaveNewModule:
 DeleteModule:
     eModulesReverse := getModulesListReverse()
     module := new ModuleModel(eModulesReverse[ModuleChoice])
-    module.deleteIfEmpty(db)
 
-    ModulesList := getModulesList()
-    ; To replace (overwrite) the list, include a pipe as the first character
-    GuiControl, TestCases:, ModuleChoice, |%ModulesList%
+    if (module.isEmpty(db)) {
+        module.deleteIfEmpty(db)
+
+        ModulesList := getModulesList()
+        ; To replace (overwrite) the list, include a pipe as the first character
+        GuiControl, TestCases:, ModuleChoice, |%ModulesList%
+    } else {
+        MsgBox , , Warning, This module cannot be deleted because it contains testcases
+    }
     return
 
 NewModuleGuiClose:

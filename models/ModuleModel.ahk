@@ -18,9 +18,18 @@ class ModuleModel {
     }
 
     deleteIfEmpty(db) {
-        sql := Format(" DELETE FROM testcases_modules WHERE module_id = {1:d} ", this.module_id)
-        sql .= " AND module_id NOT IN (SELECT Module FROM testcases GROUP BY Module) "
+        query := Format(" DELETE FROM testcases_modules WHERE module_id = {1:d} ", this.module_id)
+        query .= " AND module_id NOT IN (SELECT Module FROM testcases GROUP BY Module) "
 
-        db.Exec(sql)
+        db.Exec(query)
+    }
+
+    isEmpty(db) {
+        query := Format("SELECT count(Test_Case_ID) As TotalCount FROM testcases WHERE Module = {1:d}", this.module_id)
+        db.Query(query, recordSet)
+        while (recordSet.Next(row) > 0) {
+            return 0 == row[1]
+        }
+        debug("ERROR: empty recordSet for module_id = " . module_id)
     }
 }
