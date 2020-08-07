@@ -144,6 +144,7 @@ SaveTestCase:
     testCase.Type            := eTestTypeReverse[TestTypeChoice]
     testCase.Priority        := ePriorityReverse[PriorityChoice]
     testCase.Estimate_Time   := EstimateValue
+    testCase.Test_Data       := TestDataValue
     testCase.Reference       := ReferenceValue
     testCase.Precondition    := PreconditionValue
     testCase.Tags            := TagsValue

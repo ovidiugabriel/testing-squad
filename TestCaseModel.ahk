@@ -18,6 +18,7 @@ class TestCaseModel {
     Title           := ""
     Description     := ""
     Type            := 0
+    Test_Data       := ""
     Priority        := 0
     Estimate_Time   := 0
     Reference       := ""
@@ -43,6 +44,7 @@ class TestCaseModel {
                 , Title:           this.Title
                 , Description:     this.Description
                 , Type:            this.Type
+                , Test_Data:       this.Test_Data
                 , Priority:        this.Priority
                 , Estimate_Time:   this.Estimate_Time
                 , Reference:       this.Reference

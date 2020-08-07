@@ -13,17 +13,19 @@ Gui, Add, Text, x12 y279 w100 h20 , Priority
 Gui, Add, DropDownList, x112 y279 w130 vPriorityChoice, |Critical|High|Medium|Low
 Gui, Add, Text, x12 y309 w90 h20 , Estimate
 Gui, Add, Edit, x112 y309 w130 h20 vEstimateValue,
-Gui, Add, Text, x12 y339 w90 h20 , Reference
-Gui, Add, Edit, x12 y359 w340 h40 vReferenceValue,
+Gui, Add, Text, x12 y339 w90 h20 , Test Data
+Gui, Add, Edit, x12 y359 w340 h50 vTestDataValue,
+Gui, Add, Text, x12 y419 w100 h20 , Reference
+Gui, Add, Edit, x12 y439 w340 h40 vReferenceValue,
 Gui, Add, Text, x372 y9 w230 h20 , Precondition
 Gui, Add, Edit, x372 y29 w340 h100 vPreconditionValue,
 Gui, Add, Text, x372 y139 w40 h20 , Tags
-Gui, Add, Edit, x412 y139 w300 vTagsValue,
+Gui, Add, Edit, x412 y139 w300 h20 vTagsValue,
 Gui, Add, Text, x372 y169 w230 h20 , Steps
 Gui, Add, Edit, x372 y189 w340 h100 vStepsValue,
 Gui, Add, Text, x372 y299 w220 h20 , Expected
 Gui, Add, Edit, x372 y319 w340 h110 vExpectedValue,
 Gui, Add, Button, x612 y439 w100 h30 gSaveTestCase, Save Test Case
 
-Gui, Show, x187 y107 h586 w830, New Test Case
+Gui, Show, x187 y107 h512 w749, New Test Case
 Return
