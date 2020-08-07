@@ -20,9 +20,12 @@ class TestCaseModel {
     Type            := 0
     Priority        := 0
     Estimate_Time   := 0
+    Reference       := ""
     Precondition    := ""
     Steps           := ""
     Expected_Result := ""
+    Created_Date    := ""
+    Updated_Date    := ""
     Created_by      := 1
     Updated_by      := 1
 
@@ -30,6 +33,10 @@ class TestCaseModel {
     ;; Inserts testcase into database
     ;;
     insert(db) {
+        FormatTime, TimeString
+        this.Created_Date := TimeString
+        this.Updated_Date := TimeString
+
         db_insert(db, "testcases", {Module: this.Module
                 , Code:            this.Code
                 , Title:           this.Title
@@ -37,9 +44,12 @@ class TestCaseModel {
                 , Type:            this.Type
                 , Priority:        this.Priority
                 , Estimate_Time:   this.Estimate_Time
+                , Reference:       this.Reference
                 , Precondition:    this.Precondition
                 , Steps:           this.Steps
                 , Expected_Result: this.Expected_Result
+                , Created_Date:    this.Created_Date
+                , Updated_Date:    this.Updated_Date
                 , Created_by:      this.Created_by
                 , Updated_by:      this.Updated_by })
     }
