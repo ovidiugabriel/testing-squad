@@ -14,7 +14,8 @@
 
 ;; Manual: https://github.com/ovidiugabriel/testing-squad/blob/master/docs/SQLite-AHK.md
 #include Class_SQLiteDB.ahk
-#include TestCaseModel.ahk
+#include models/TestCaseModel.ahk
+#include models/ModuleModel.ahk
 
 debug(string) {
     OutputDebug, %string%
@@ -70,7 +71,7 @@ onModuleSelected(module_id) {
 
 ModulesList := getModulesList()
 Gui TestCases:Default
-#include TestCases.ahk
+#include forms/TestCases.ahk
 
 return
 
@@ -100,9 +101,20 @@ SaveNewModule:
 
     db_insert(db, "testcases_modules", {module_name: ModuleNameValue})
 
-    GuiControl, NewTestCase:, ModuleChoice, %ModuleNameValue%
+    GuiControl, NewTestCase:, ModuleChoice, % ModuleNameValue
+    GuiControl, TestCases:, ModuleChoice, % ModuleNameValue
 
     Gui Destroy
+    return
+
+DeleteModule:
+    eModulesReverse := getModulesListReverse()
+    module := new ModuleModel(eModulesReverse[ModuleChoice])
+    module.deleteIfEmpty(db)
+
+    ModulesList := getModulesList()
+    ; To replace (overwrite) the list, include a pipe as the first character
+    GuiControl, TestCases:, ModuleChoice, |%ModulesList%
     return
 
 NewModuleGuiClose:
