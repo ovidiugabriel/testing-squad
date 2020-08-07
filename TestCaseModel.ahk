@@ -22,6 +22,7 @@ class TestCaseModel {
     Estimate_Time   := 0
     Reference       := ""
     Precondition    := ""
+    Tags            := ""
     Steps           := ""
     Expected_Result := ""
     Created_Date    := ""
@@ -46,6 +47,7 @@ class TestCaseModel {
                 , Estimate_Time:   this.Estimate_Time
                 , Reference:       this.Reference
                 , Precondition:    this.Precondition
+                , Tags:            this.Tags
                 , Steps:           this.Steps
                 , Expected_Result: this.Expected_Result
                 , Created_Date:    this.Created_Date
