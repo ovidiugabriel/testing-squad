@@ -14,6 +14,7 @@
 
 ;; Manual: docs/SQLite-AHK.md
 #include Class_SQLiteDB.ahk
+#include models/data.ahk
 #include models/TestCaseModel.ahk
 #include models/ModuleModel.ahk
 
@@ -30,11 +31,6 @@ if (db.OpenDB(db_path, "W", false)) {
     debug("OpenDB success")
 } else {
     debug("Failed to open database " . db.ErrorMsg)
-}
-
-getAllModules(ByRef recordSet) {
-    global db
-    db.Query("SELECT module_id, module_name FROM testcases_modules", recordSet)
 }
 
 getModulesList() {
@@ -56,10 +52,7 @@ getModulesListReverse() {
 }
 
 onModuleSelected(module_id) {
-    global db
-    sql := Format("SELECT Test_Case_ID, Code, Title FROM testcases WHERE Module = '{1:d}'", module_id)
-    debug(sql)
-    db.Query(sql, recordSet)
+    getModuleTestcases(module_id, recordSet)
 
     LV_Delete()
     while (recordSet.Next(row) > 0) {
@@ -74,14 +67,10 @@ showSpecEditor() {
 }
 
 openSpecsEditor(testCaseId) {
-    global db
-
     showSpecEditor()
 
     ;; populate the list view of specs
-    sql := Format("SELECT spec_id, selector, action, params, should FROM testcase_specs WHERE testcase_id = '{1:d}'", testCaseId)
-    debug(sql)
-    db.Query(sql, recordSet)
+    getTestcaseSpecs(testCaseId, recordSet)
 
     LV_Delete()
     while (recordSet.Next(row) > 0) {
