@@ -12,7 +12,7 @@
 
 #SingleInstance force
 
-;; Manual: https://github.com/ovidiugabriel/testing-squad/blob/master/docs/SQLite-AHK.md
+;; Manual: docs/SQLite-AHK.md
 #include Class_SQLiteDB.ahk
 #include models/TestCaseModel.ahk
 #include models/ModuleModel.ahk
@@ -57,7 +57,28 @@ getModulesListReverse() {
 
 onModuleSelected(module_id) {
     global db
-    sql := Format("SELECT Test_Case_ID, Module, Code, Title FROM testcases WHERE Module = '{1:d}'", module_id)
+    sql := Format("SELECT Test_Case_ID, Code, Title FROM testcases WHERE Module = '{1:d}'", module_id)
+    debug(sql)
+    db.Query(sql, recordSet)
+
+    LV_Delete()
+    while (recordSet.Next(row) > 0) {
+        LV_Add("", row[1], row[2], row[3])
+    }
+}
+
+showSpecEditor() {
+    Gui SpecEditor:Default
+    #include forms/SpecEditor.ahk
+}
+
+openSpecsEditor(testCaseId) {
+    global db
+
+    showSpecEditor()
+
+    ;; populate the list view of specs
+    sql := Format("SELECT selector, action, params, should FROM testcase_specs WHERE testcase_id = '{1:d}'", testCaseId)
     debug(sql)
     db.Query(sql, recordSet)
 
@@ -170,6 +191,17 @@ SaveTestCase:
 
     testCase.insert(db)
     Gui NewTestCase:Destroy
+    return
+
+EditSpecs:
+    If !(SelectedRow := LV_GetNext()) {
+       MsgBox, 0, Important, Select a testcase first!
+       Return
+    }
+    LV_GetText(RowText, SelectedRow)
+    testCaseId := Floor(RowText)
+    openSpecsEditor(testCaseId)
+
     return
 
 GuiClose:
