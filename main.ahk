@@ -65,6 +65,7 @@ onModuleSelected(module_id) {
     while (recordSet.Next(row) > 0) {
         LV_Add("", row[1], row[2], row[3])
     }
+    autoReizeColumns(3)
 }
 
 showSpecEditor() {
@@ -78,13 +79,20 @@ openSpecsEditor(testCaseId) {
     showSpecEditor()
 
     ;; populate the list view of specs
-    sql := Format("SELECT selector, action, params, should FROM testcase_specs WHERE testcase_id = '{1:d}'", testCaseId)
+    sql := Format("SELECT spec_id, selector, action, params, should FROM testcase_specs WHERE testcase_id = '{1:d}'", testCaseId)
     debug(sql)
     db.Query(sql, recordSet)
 
     LV_Delete()
     while (recordSet.Next(row) > 0) {
-        LV_Add("", row[1], row[2], row[3], row[4])
+        LV_Add("", row[1], row[2], row[3], row[4], row[5])
+    }
+    autoReizeColumns(5)
+}
+
+autoReizeColumns(nColumns) {
+    loop, %nColumns% {
+        LV_ModifyCol(A_Index, "AutoHdr")
     }
 }
 
@@ -149,6 +157,10 @@ NewModuleGuiClose:
 
 NewTestCaseGuiClose:
     Gui NewTestCase:Destroy
+    return
+
+SpecEditorGuiClose:
+    Gui SpecEditor:Destroy
     return
 
 SaveTestCase:
