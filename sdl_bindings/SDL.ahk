@@ -119,7 +119,7 @@ SDL_CreateRenderer(window, index, flags) {
 ;; and flags.
 ;;
 SDL_CreateWindow(title, x, y, w, h, flags) {
-    return DllCall("SDL2\SDL_CreateWindow", "Str", title, "Int", x, "Int", y
+    return DllCall("SDL2\SDL_CreateWindow", "AStr", title, "Int", x, "Int", y
         , "Int", w, "Int", h, "UInt", flags, "Ptr")
 }
 
